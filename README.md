@@ -19,13 +19,13 @@ This has led to the uncontrolled (without legal constraints) spread of various *
 
 ## Sample Analysis Procedure
 
-The original sample was taken from http://telegram-vip.com, a phishing site disguised as a Chinese version of Telegram.
+The original sample was taken from http://telegram-vip.com, a phishing site disguised as a Chinese version of Telegram :
 
-p1
+![alt Fake Chinese version of Telegram website](./images/p1.png)
 
 The home page of the website has links to download the so-called versions, but if you click on the links to download "Telegram for Mac" or "Telegram for Windows", the downloaded file will be a Windows installer named "tsetup.2.1.10.exe". If you click on the link to download Telegram for Android or iPhone, you will be redirected to another page : 
 
-P2
+![alt Download page](./images/p2.png)
 
 Depending on the link clicked, the results vary :
 
