@@ -119,3 +119,26 @@ Understanding the above NSIS script can help us learn how it is infected and how
 
 ## Load file AddInProcess.exe
 
+|Filename|SHA256|
+|:----:|:----:|
+|AddInProcess.exe (2.1.6)|f853c478fc57ac7e8bf3676b5d043d8bf071e2b817fe93d2acbd0333c46d1063|
+|AddInProcess.exe (2.1.10)|379a9fcb8701754559901029812e6614c187d114e3527dd41795aa7647b68811
+|
+
+Basically, the content of the two files is not much different, only the metadata has changed, the File Version has changed from 1.0.0.0 to 1.3.0.0 : 
+
+![alt File Basic Information](./images/p3.png)
+
+The same structure and functions in .NET file :
+
+![alt The same structure and functions in .NET file](./images/p4.png)
+
+The same Main function : 
+
+![alt The same Main function](./images/p5.png)
+
+As you can see from the Main function above, AddInProcess.exe is just a loader, the real content is in the registry data imported during installation, located in HKEY_CURRENT_USER\Software\\<COMPUTERNAME\> which is a base64 coded DLL and an ip address :
+
+![alt Registry Editor](./images/p6.png)
+
+## Assembly.Load (Malware.dll)
