@@ -19,34 +19,34 @@ This has led to the uncontrolled (without legal constraints) spread of various *
 
 ## Sample Analysis Procedure
 
-The original sample was taken from http://telegram-vip.com, a phishing site disguised as a Chinese version of Telegram :
+The original sample was taken from ``http://telegram-vip.com``, a phishing site disguised as a Chinese version of Telegram :
 
 ![alt Fake Chinese version of Telegram website](./images/p1.png)
 
-The home page of the website has links to download the so-called versions, but if you click on the links to download "Telegram for Mac" or "Telegram for Windows", the downloaded file will be a Windows installer named "tsetup.2.1.10.exe". If you click on the link to download Telegram for Android or iPhone, you will be redirected to another page : 
+The home page of the website has links to download the so-called versions, but if you click on the links to download **Telegram for Mac** or **Telegram for Windows**, the downloaded file will be a Windows installer named ``tsetup.2.1.10.exe``. If you click on the link to download Telegram for Android or iPhone, you will be redirected to another page : 
 
 ![alt Download page](./images/p2.png)
 
 Depending on the link clicked, the results vary :
 
-- Clicking on the iPhone download link will redirect you to the normal Apple App Store : https://apps.apple.com/app/telegram-messenger/id686449807
+- Clicking on the iPhone download link will redirect you to the normal Apple App Store : ``https://apps.apple.com/app/telegram-messenger/id686449807``
 
-- Clicking on the Android version will redirect you to another link to download the installer : https://telegrcn.org/download/telegramCN_631.apk
+- Clicking on the Android version will redirect you to another link to download the installer : ``https://telegrcn.org/download/telegramCN_631.apk``
 
-- Clicking on the Mac version download link will redirect you to another link to download the installer : https://telegrcn.org/download/tsetup.2.1.10.dmg
+- Clicking on the Mac version download link will redirect you to another link to download the installer : ``https://telegrcn.org/download/tsetup.2.1.10.dmg``
 
 - Clicking on the Windows version is the same as the installation package downloaded from the home page.
 
-Next, for the sake of time, we will first analyze the Windows version of the "installer".
+Next, for the sake of time, we will first analyze the Windows version of "installer".
 
 ## Malware installation package information
 
 |Filename|SHA256|
 |:--------:|:------:|
 |telegram_setup.2.1.6.exe|1f09381186a82f070d7beda66f575efdecd92b76217b5a0d9b904c1d64c89fc8|
-|telegram_setup.2.1.10.exe|35133a3283381aa503f0d415de3ab8111e2e690bd32ad3dddde1213b51c877ba
+|telegram_setup.2.1.10.exe|35133a3283381aa503f0d415de3ab8111e2e690bd32ad3dddde1213b51c877ba|
 
-Both installers use the NSIS ([Nullsoft Scriptable Install System](https://nsis.sourceforge.io/Main_Page)) package, which can be extracted directly with 7-zip to get the restored installation script. 7-zip added automatic decompilation of the NSIS script in 9.33, but removed it in 15.06, so be aware that version must be in between.
+Both installers use the NSIS ([Nullsoft Scriptable Install System](https://nsis.sourceforge.io/Main_Page)) package, which can be extracted directly with ``7-zip`` to get the restored installation script. ``7-zip`` added automatic decompilation of the NSIS script in ``9.33``, but removed it in ``15.06``, so be aware that version must be in between.
 
 The directory structure of the two versions after decompression is as follows : 
 
@@ -85,7 +85,7 @@ The directory structure of the two versions after decompression is as follows :
 └── Updater.exe
 ```
 
-Comparing the two versions, we can obviously notice that version 2.1.10 is missing the key backdoor files **C:\PerfLog** and **ns.reg**, 2.1.6 directly packaged these files together, but 2.1.10 changed the way, using the NSIS script to download these two files only during the installation process, which can be seen in the NSIS script. The following is an excerpt from the 2.1.10 NSIS.nsi script with some of the relevant commands : 
+Comparing the two versions, we can obviously notice that version ``2.1.10`` is missing the key backdoor files ``C:\PerfLog`` and ``ns.reg``, ``2.1.6`` directly packaged these files together, but ``2.1.10`` changed the way, using the NSIS script to download these two files only during the installation process, which can be seen in the NSIS script. The following is an excerpt from the ``2.1.10 NSIS.nsi`` script with some of the relevant commands : 
 
 ```
 # Download loader and registry file
@@ -121,21 +121,21 @@ Understanding the above NSIS script can help us learn how it is infected and how
 |Filename|SHA256|
 |:----:|:----:|
 |AddInProcess.exe (2.1.6)|f853c478fc57ac7e8bf3676b5d043d8bf071e2b817fe93d2acbd0333c46d1063|
-|AddInProcess.exe (2.1.10)|379a9fcb8701754559901029812e6614c187d114e3527dd41795aa7647b68811
+|AddInProcess.exe (2.1.10)|379a9fcb8701754559901029812e6614c187d114e3527dd41795aa7647b68811|
 
-Basically, the content of the two files is not much different, only the metadata has changed, the File Version has changed from 1.0.0.0 to 1.3.0.0 : 
+Basically, the content of the two files is not much different, only the metadata has changed, the File Version has changed from ``1.0.0.0`` to ``1.3.0.0`` : 
 
 ![alt File Basic Information](./images/p3.png)
 
-The same structure and functions in .NET file :
+The same structure and functions in ``.NET`` file :
 
 ![alt The same structure and functions in .NET file](./images/p4.png)
 
-The same Main function : 
+The same ``Main`` function : 
 
 ![alt The same Main function](./images/p5.png)
 
-As you can see from the Main function above, AddInProcess.exe is just a loader, the real content is in the registry data imported during installation, located in HKEY_CURRENT_USER\Software\\<COMPUTERNAME\> which is a base64 coded DLL and an ip address :
+As you can see from the Main function above, ``AddInProcess.exe`` is just a loader, the real content is in the registry data imported during installation, located in ``HKEY_CURRENT_USER\Software\<COMPUTERNAME>`` which is a base64 coded DLL and an IP address :
 
 ![alt Registry Editor](./images/p6.png)
 
@@ -148,9 +148,9 @@ Assembly.Load function can dynamically load another DLL, i.e. registry content, 
 |ns.reg (2.1.6)|96e0c3048df12fd8a930fbf38e380e229b4cdb8c2327c58ad278cfb7dafcec22|
 |registry.bin (2.1.6)|7fd9d7a91eb9f413463c9f358312fce6a6427b3cd4f5e896a4a5629cb945520a|
 |ns.reg (2.1.10)|d620d8f93877387b7fab7828bbfe44f38f4a738ca6fd68f18507b3aa95da683a|
-|registry.bin (2.1.10)|e60b984b7515a6d606ee4e4ae9cb7936bc403176e0ac8dbeeb6d0ae201fca3ef
+|registry.bin (2.1.10)|e60b984b7515a6d606ee4e4ae9cb7936bc403176e0ac8dbeeb6d0ae201fca3ef|
 
-The extracted .NET DLL has the same structure : 
+The extracted ``.NET`` DLL has the same structure : 
 
 ![alt Functions for Registry.bin](images/p7.png)
 
@@ -160,15 +160,15 @@ The only difference is the Main function, and the dlldata in the ClassBuff :
 
 ![alt Main function of Registry.bin (2.1.10)](images/p9.png)
 
-In version 2.1.6, the ip address of C2 is read from the registry using ``Program.GetRegedit()``, but for some reason in version 2.1.10, it has become a fixed base64 string ``MTU0LjIyMi4xMDMuNTg6Nzg3OA==`` to ``Program.StartWorkThread()`` : 
+In version ``2.1.6``, the IP address of C2 is read from the registry using ``Program.GetRegedit()``, but for some reason in version ``2.1.10``, it has become a fixed Base64 string ``MTU0LjIyMi4xMDMuNTg6Nzg3OA==`` to ``Program.StartWorkThread()`` : 
 
 ![alt StartWorkThread function of registry.bin](images/p10.png)
 
-``Program.StartWorkThread()`` is responsible for preparing the ip address and port of C2 to start ``Program.MainThread()``. What is special here is that this function has another default C2 ip address, which is used when the function is called and substituted for an empty string. As we saw earlier, there is a loop in the Main function. ``Program.StartWorkThread()`` will be called after waiting for 300 seconds, and the ip address will be used then.
+``Program.StartWorkThread()`` is responsible for preparing the IP address and port of C2 to start ``Program.MainThread()``. What is special here is that this function has another default C2 IP address, which is used when the function is called and substituted for an empty string. As we saw earlier, there is a loop in the Main function. ``Program.StartWorkThread()`` will be called after waiting for 300 seconds, and the IP address will be used then.
 
 ![alt MainThread function of registry.bin](images/p11.png)
 
-``MainThread()`` then converts the object containing the ip address to bytes and looks for the preset 255.255.255.255 in ``ClassBuff().dlldata`` to overwrite it. Finally, use the class DLLFromMemory to execute the final DLL directly in memory, export function Launch.
+``MainThread()`` then converts the object containing the IP address to bytes and looks for the preset ``255.255.255.255`` in ``ClassBuff().dlldata`` to overwrite it. Finally, use the class ``DLLFromMemory`` to execute the final DLL directly in memory, export function Launch.
 
 ## Hello gh0st RAT DLL
 
@@ -177,7 +177,7 @@ In version 2.1.6, the ip address of C2 is read from the registry using ``Program
 |dlldata_2.1.6.bin|e0d7398d2a5a936584742bd456ab2788722a989ad5e9c49567207c76275254b0|
 |dlldata_2.1.10.bin|9c0aa1e136f02e99b80e27e48dc5c4bb95a0b7f115d2f68aa4e9b1bef593d3db
 
-Both of these DLLs maintain the C2 ip of 255.255.255.255, which was fixed in registry.bin before it was modified. The last DLL loaded dynamically in memory is a variant of the gh0st RAT, which is very similar to the old and new versions and has roughly no functional differences : 
+Both of these DLLs maintain the C2 IP of ``255.255.255.255``, which was fixed in ``registry.bin`` before it was modified. The last DLL loaded dynamically in memory is a variant of the gh0st RAT, which is very similar to the old and new versions and has roughly no functional differences : 
 
 ![alt Comparison of dlldata_2.1.6.bin and dlldata_2.1.10.bin BinDiff](images/p12.png)
 
@@ -195,17 +195,17 @@ In addition, the magic header of this gh0st RAT variant has only three words: ``
 
 The two C2 addresses were obtained during the previous analysis : 
 
-- ``154.222.103.58:7878`` : The first C2 ip is read from the registry in version 2.1.6, but in 2.1.10, although the registry still has the same ip, the sample also has the same ip fixed.
+- ``154.222.103.58:7878`` : The first C2 IP is read from the registry in version ``2.1.6``, but in ``2.1.10``, although the registry still has the same IP, the sample also has the same IP fixed.
 
-- ``185.224.168.130:3563`` : The second C2 ip, wait for five minutes before connecting.
+- ``185.224.168.130:3563`` : The second C2 IP, wait for five minutes before connecting.
 
-There is also the original fake site ``http://telegram-vip.com`` with an A record of ``45.114.106.2``. By using the favicon hash or HTML body hash, a total of five associated ip's can be found that all belong to the same fake site : 
+There is also the original fake site ``http://telegram-vip.com`` with an A record of ``45.114.106.2``. By using the favicon hash or HTML body hash, a total of five associated IP's can be found that all belong to the same fake site : 
 
-- 45.114.106.2
-- 45.114.106.3
-- 45.114.106.4
-- 45.114.106.5
-- 45.114.106.6
+- ``45.114.106.2``
+- ``45.114.106.3``
+- ``45.114.106.4``
+- ``45.114.106.5``
+- ``45.114.106.6``
 
 Related search features : 
 
