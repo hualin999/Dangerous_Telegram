@@ -45,7 +45,6 @@ Next, for the sake of time, we will first analyze the Windows version of the "in
 |:--------:|:------:|
 |telegram_setup.2.1.6.exe|1f09381186a82f070d7beda66f575efdecd92b76217b5a0d9b904c1d64c89fc8|
 |telegram_setup.2.1.10.exe|35133a3283381aa503f0d415de3ab8111e2e690bd32ad3dddde1213b51c877ba
-|
 
 Both installers use the NSIS ([Nullsoft Scriptable Install System](https://nsis.sourceforge.io/Main_Page)) package, which can be extracted directly with 7-zip to get the restored installation script. 7-zip added automatic decompilation of the NSIS script in 9.33, but removed it in 15.06, so be aware that version must be in between.
 
@@ -123,7 +122,6 @@ Understanding the above NSIS script can help us learn how it is infected and how
 |:----:|:----:|
 |AddInProcess.exe (2.1.6)|f853c478fc57ac7e8bf3676b5d043d8bf071e2b817fe93d2acbd0333c46d1063|
 |AddInProcess.exe (2.1.10)|379a9fcb8701754559901029812e6614c187d114e3527dd41795aa7647b68811
-|
 
 Basically, the content of the two files is not much different, only the metadata has changed, the File Version has changed from 1.0.0.0 to 1.3.0.0 : 
 
