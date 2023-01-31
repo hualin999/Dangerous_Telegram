@@ -1,9 +1,9 @@
 # Dangerous_Telegram
 Contributor : [Lei HUANG](https://github.com/hualin999)
 
-Tutors : Mr. [Alexandre DULAUNOY](https://github.com/adulau) & Mr. [Christian STUDER](https://github.com/chrisr3d)
+Tutors : Mr. [Alexandre DULAUNOY](https://github.com/adulau) && Mr. [Christian STUDER](https://github.com/chrisr3d)
 
-## Project Context
+# Project Context
 
 As we all know, there is a firewall called "Great Firewall" in China. The Great Firewall is the combination of legislative actions and technologies enforced by the People's Republic of China to regulate the Internet domestically. Its role in internet censorship in China is to block access to selected foreign websites and to slow down cross-border internet traffic.
 
@@ -13,17 +13,19 @@ Obviously our subject today is not "Great Firewall", but because of this, people
 
 This has led to the uncontrolled (without legal constraints) spread of various **Trojans** and **Malware** disguised as phishing links (like official download link/installation package or Chinese installation package) or Chinese community chat files (Especially Telegram downloads chat files by default).
 
-## Project Objective
+# Project Objective
 
-**The purpose of this project is to analyze some Malware and Trojan samples that are currently spreading widely in the Telegram Chinese community, and to translate the relevant threat intelligence information into a specific analysis model for MISP.**
+**The purpose of this project is to analyze some Malware and Trojan samples that are currently spreading widely in the Telegram Chinese community, and to translate the relevant threat intelligence information into a specific analysis model for MISP (for example, [MISP objects](https://www.misp-project.org/objects.html)).**
 
-## Sample Analysis Procedure
+# Sample Analysis Procedure
+
+### ⚠️ <u>WARNING! The links below contain Malware and Trojans, PLEASE DO NOT CLICK ON THEM!</u>
 
 The original sample was taken from ``http://telegram-vip.com``, a phishing site disguised as a Chinese version of Telegram :
 
 ![alt Fake Chinese version of Telegram website](./images/p1.png)
 
-The home page of the website has links to download the so-called versions, but if you click on the links to download **Telegram for Mac** or **Telegram for Windows**, the downloaded file will be a Windows installer named ``tsetup.2.1.10.exe``. If you click on the link to download Telegram for Android or iPhone, you will be redirected to another page : 
+The home page of the website has links to download the so-called versions, but if you click on the links to download ``Telegram for Mac`` or ``Telegram for Windows``, the downloaded file will be a Windows installer named ``tsetup.2.1.10.exe``. If you click on the link to download ``Telegram for Android`` or ``Telegram for iPhone``, you will be redirected to another page : 
 
 ![alt Download page](./images/p2.png)
 
@@ -37,16 +39,16 @@ Depending on the link clicked, the results vary :
 
 - Clicking on the Windows version is the same as the installation package downloaded from the home page.
 
-Next, for the sake of time, we will first analyze the Windows version of "installer".
+Next, for the sake of time, we will first analyze the Windows version of "Installer".
 
-## Malware installation package information
+# Malware installation package information
 
 |Filename|SHA256|
-|:--------:|:------:|
+|:------:|:------:|
 |telegram_setup.2.1.6.exe|1f09381186a82f070d7beda66f575efdecd92b76217b5a0d9b904c1d64c89fc8|
 |telegram_setup.2.1.10.exe|35133a3283381aa503f0d415de3ab8111e2e690bd32ad3dddde1213b51c877ba|
 
-Both installers use the NSIS ([Nullsoft Scriptable Install System](https://nsis.sourceforge.io/Main_Page)) package, which can be extracted directly with ``7-zip`` to get the restored installation script. ``7-zip`` added automatic decompilation of the NSIS script in ``9.33``, but removed it in ``15.06``, so be aware that version must be in between.
+Both installers use the NSIS ([Nullsoft Scriptable Install System](https://nsis.sourceforge.io/Main_Page)) package, which can be extracted directly with ``7-zip`` to get the restored installation script. ``7-zip`` added automatic decompilation of the NSIS script in version ``9.33``, but removed it in version ``15.06``, so be aware that version must be in between.
 
 The directory structure of the two versions after decompression is as follows : 
 
@@ -85,7 +87,7 @@ The directory structure of the two versions after decompression is as follows :
 └── Updater.exe
 ```
 
-Comparing the two versions, we can obviously notice that version ``2.1.10`` is missing the key backdoor files ``C:\PerfLog`` and ``ns.reg``, ``2.1.6`` directly packaged these files together, but ``2.1.10`` changed the way, using the NSIS script to download these two files only during the installation process, which can be seen in the NSIS script. The following is an excerpt from the ``2.1.10 NSIS.nsi`` script with some of the relevant commands : 
+Comparing the two versions, we can obviously notice that version ``2.1.10`` is missing the key backdoor files ``C:\PerfLog`` and ``ns.reg``. Version ``2.1.6`` directly packaged these files together, but version ``2.1.10`` changed the way, using the NSIS script to download these two files only during the installation process, which can be seen in the NSIS script. The following is an excerpt from the ``2.1.10 NSIS.nsi`` script with some of the relevant commands : 
 
 ```
 # Download loader and registry file
@@ -116,14 +118,14 @@ ExecShell "" C:\PerfLog\AddInProcess.exe
 
 Understanding the above NSIS script can help us learn how it is infected and how it is persisted.
 
-## Load file AddInProcess.exe
+# Load file AddInProcess.exe
 
 |Filename|SHA256|
 |:----:|:----:|
 |AddInProcess.exe (2.1.6)|f853c478fc57ac7e8bf3676b5d043d8bf071e2b817fe93d2acbd0333c46d1063|
 |AddInProcess.exe (2.1.10)|379a9fcb8701754559901029812e6614c187d114e3527dd41795aa7647b68811|
 
-Basically, the content of the two files is not much different, only the metadata has changed, the File Version has changed from ``1.0.0.0`` to ``1.3.0.0`` : 
+Basically, the content of the two files is not much different. Only the metadata has changed, and the file version has changed from ``1.0.0.0`` to ``1.3.0.0`` : 
 
 ![alt File Basic Information](./images/p3.png)
 
@@ -131,17 +133,17 @@ The same structure and functions in ``.NET`` file :
 
 ![alt The same structure and functions in .NET file](./images/p4.png)
 
-The same ``Main`` function : 
+The same ``Main()`` function : 
 
 ![alt The same Main function](./images/p5.png)
 
-As you can see from the Main function above, ``AddInProcess.exe`` is just a loader, the real content is in the registry data imported during installation, located in ``HKEY_CURRENT_USER\Software\<COMPUTERNAME>`` which is a base64 coded DLL and an IP address :
+As you can see from the Main function above, ``AddInProcess.exe`` is just a loader, the real content is in the registry data imported during installation, located in ``HKEY_CURRENT_USER\Software\<COMPUTERNAME>``, which is a Base64 coded DLL and an IP address :
 
 ![alt Registry Editor](./images/p6.png)
 
-## Assembly.Load (Malware.dll)
+# Assembly.Load (Malware.dll)
 
-Assembly.Load function can dynamically load another DLL, i.e. registry content, which we can extract for further analysis.
+``Assembly.Load()`` function can dynamically load another DLL, i.e. registry content, which we can extract for further analysis.
 
 |Filename|SHA256|
 |:----:|:----:|
@@ -154,28 +156,28 @@ The extracted ``.NET`` DLL has the same structure :
 
 ![alt Functions for Registry.bin](images/p7.png)
 
-The only difference is the Main function, and the dlldata in the ClassBuff : 
+The only difference is the ``Main()`` function, and the dlldata in the ``ClassBuff`` : 
 
 ![alt Main function of Registry.bin (2.1.6)](images/p8.png)
 
 ![alt Main function of Registry.bin (2.1.10)](images/p9.png)
 
-In version ``2.1.6``, the IP address of C2 is read from the registry using ``Program.GetRegedit()``, but for some reason in version ``2.1.10``, it has become a fixed Base64 string ``MTU0LjIyMi4xMDMuNTg6Nzg3OA==`` to ``Program.StartWorkThread()`` : 
+In version ``2.1.6``, the IP address of C2 is read from the registry using ``Program.GetRegedit()``; But for some reason in version ``2.1.10``, it has become a fixed Base64 string ``MTU0LjIyMi4xMDMuNTg6Nzg3OA==`` to ``Program.StartWorkThread()`` : 
 
 ![alt StartWorkThread function of registry.bin](images/p10.png)
 
-``Program.StartWorkThread()`` is responsible for preparing the IP address and port of C2 to start ``Program.MainThread()``. What is special here is that this function has another default C2 IP address, which is used when the function is called and substituted for an empty string. As we saw earlier, there is a loop in the Main function. ``Program.StartWorkThread()`` will be called after waiting for 300 seconds, and the IP address will be used then.
+``Program.StartWorkThread()`` is responsible for preparing the IP address and port of C2 to start ``Program.MainThread()``. What is special here is that this function has another default C2 IP address, which is used when the function is called and substituted for an empty string. As we saw earlier, there is a loop in the ``Main()`` function. ``Program.StartWorkThread()`` will be called after waiting for ``300`` seconds, and the IP address will be used then.
 
 ![alt MainThread function of registry.bin](images/p11.png)
 
-``MainThread()`` then converts the object containing the IP address to bytes and looks for the preset ``255.255.255.255`` in ``ClassBuff().dlldata`` to overwrite it. Finally, use the class ``DLLFromMemory`` to execute the final DLL directly in memory, export function Launch.
+``MainThread()`` then converts the object containing the IP address to bytes and looks for the preset ``255.255.255.255`` in ``ClassBuf.dlldata`` to overwrite it. Finally, use the class ``DLLFromMemory`` to execute the final DLL directly in memory, export function Launch.
 
-## Hello gh0st RAT DLL
+# Hello gh0st RAT DLL
 
 |Filename|SHA256|
 |:----:|:----:|
 |dlldata_2.1.6.bin|e0d7398d2a5a936584742bd456ab2788722a989ad5e9c49567207c76275254b0|
-|dlldata_2.1.10.bin|9c0aa1e136f02e99b80e27e48dc5c4bb95a0b7f115d2f68aa4e9b1bef593d3db
+|dlldata_2.1.10.bin|9c0aa1e136f02e99b80e27e48dc5c4bb95a0b7f115d2f68aa4e9b1bef593d3db|
 
 Both of these DLLs maintain the C2 IP of ``255.255.255.255``, which was fixed in ``registry.bin`` before it was modified. The last DLL loaded dynamically in memory is a variant of the gh0st RAT, which is very similar to the old and new versions and has roughly no functional differences : 
 
@@ -191,7 +193,7 @@ In addition, the magic header of this gh0st RAT variant has only three words: ``
 
 ![alt Raw packet characteristics](images/p15.png)
 
-## Extended Survey
+# Extended Survey
 
 The two C2 addresses were obtained during the previous analysis : 
 
@@ -221,7 +223,52 @@ Where the IP address ``45.114.106.3`` has a Domain Name ``telegramsvip.com``, ev
 
 ![alt Google Search Ads](images/p18.jpg)
 
-## IoCs
+Below is the ``Whois`` information associated with this domain name : 
+
+```
+Domain Name: TELEGRAMSVIP.COM
+Registry Domain ID: 2565966013_DOMAIN_COM-VRSN
+Registrar WHOIS Server: whois.godaddy.com
+Registrar URL: http://www.godaddy.com
+Updated Date: 2022-10-15T08:01:06Z
+Creation Date: 2022-10-15T08:01:05Z
+Registry Expiry Date: 2023-10-15T08:01:05Z
+Registrar: GoDaddy.com, LLC
+Registrar IANA ID: 146
+Registrar Abuse Contact Email: abuse(|]godaddy.com
+Registrar Abuse Contact Phone: 480-624-2505
+Domain Status: clientDeleteProhibited https://icann.org/epp#clientDeleteProhibited
+Domain Status: clientRenewProhibited https://icann.org/epp#clientRenewProhibited
+Domain Status: clientTransferProhibited https://icann.org/epp#clientTransferProhibited
+Domain Status: clientUpdateProhibited https://icann.org/epp#clientUpdateProhibited
+Name Server: NS35.DOMAINCONTROL.COM
+Name Server: NS36.DOMAINCONTROL.COM
+DNSSEC: unsigned
+URL of the ICANN Whois Inaccuracy Complaint Form: https://www.icann.org/wicf/
+```
+
+This is the ``Whois`` information about ``telegram-vip.com`` : 
+
+```
+Domain Name: TELEGRAM-VIP.COM
+Registry Domain ID: 2561073458_DOMAIN_COM-VRSN
+Registrar WHOIS Server: whois.godaddy.com
+Registrar URL: http://www.godaddy.com
+Updated Date: 2022-10-15T08:03:30Z
+Creation Date: 2022-09-21T06:44:59Z
+Registry Expiry Date: 2023-09-21T06:44:59Z
+Registrar: GoDaddy.com, LLC
+Registrar IANA ID: 146
+Registrar Abuse Contact Email: abuse(aT}godaddy.com
+Registrar Abuse Contact Phone: 480-624-2505
+Domain Status: ok https://icann.org/epp#ok
+Name Server: NS13.DOMAINCONTROL.COM
+Name Server: NS14.DOMAINCONTROL.COM
+DNSSEC: unsigned
+URL of the ICANN Whois Inaccuracy Complaint Form: https://www.icann.org/wicf/
+```
+
+# IoCs
 
 |IP|Description|
 |:----:|:----:|
@@ -236,16 +283,16 @@ Where the IP address ``45.114.106.3`` has a Domain Name ``telegramsvip.com``, ev
 |SHA256|Description|
 |:----:|:----:|
 |1f09381186a82f070d7beda66f575efdecd92b76217b5a0d9b904c1d64c89fc8|	telegram_setup.2.1.6.exe|
-|35133a3283381aa503f0d415de3ab8111e2e690bd32ad3dddde1213b51c877ba|tsetup.2.1.10.exe|
+|35133a3283381aa503f0d415de3ab8111e2e690bd32ad3dddde1213b51c877ba|telegram_setup.2.1.10.exe|
 |f853c478fc57ac7e8bf3676b5d043d8bf071e2b817fe93d2acbd0333c46d1063|AddInProcess.exe (telegram_setup.2.1.6.exe)|
-|379a9fcb8701754559901029812e6614c187d114e3527dd41795aa7647b68811|AddInProcess.exe (tsetup.2.1.10.exe)|
-|96e0c3048df12fd8a930fbf38e380e229b4cdb8c2327c58ad278cfb7dafcec22|ns.reg (2.1.6)|
-|d620d8f93877387b7fab7828bbfe44f38f4a738ca6fd68f18507b3aa95da683a|ns.reg (2.1.10)|
-|7fd9d7a91eb9f413463c9f358312fce6a6427b3cd4f5e896a4a5629cb945520a|excracted DLL from ns.reg (2.1.6)|
-|e60b984b7515a6d606ee4e4ae9cb7936bc403176e0ac8dbeeb6d0ae201fca3ef|extracted DLL from ns.reg (2.1.10)|
-|e0d7398d2a5a936584742bd456ab2788722a989ad5e9c49567207c76275254b0|embedded gh0st RAT DLL (2.1.6)|
-|9c0aa1e136f02e99b80e27e48dc5c4bb95a0b7f115d2f68aa4e9b1bef593d3db|embedded gh0st RAT DLL (2.1.10)|
-|19d1ff6bb589fab200f3bced0f148bb5e20fe9b37bd03de9cd425116cc0dba17|telegramCN_631.apk
+|379a9fcb8701754559901029812e6614c187d114e3527dd41795aa7647b68811|AddInProcess.exe (telegram_setup.2.1.10.exe)|
+|96e0c3048df12fd8a930fbf38e380e229b4cdb8c2327c58ad278cfb7dafcec22|ns.reg (telegram_setup.2.1.6.exe)|
+|d620d8f93877387b7fab7828bbfe44f38f4a738ca6fd68f18507b3aa95da683a|ns.reg (telegram_setup.2.1.10.exe)|
+|7fd9d7a91eb9f413463c9f358312fce6a6427b3cd4f5e896a4a5629cb945520a|excracted DLL from ns.reg (telegram_setup.2.1.6.exe)|
+|e60b984b7515a6d606ee4e4ae9cb7936bc403176e0ac8dbeeb6d0ae201fca3ef|extracted DLL from ns.reg (telegram_setup.2.1.10.exe)|
+|e0d7398d2a5a936584742bd456ab2788722a989ad5e9c49567207c76275254b0|embedded gh0st RAT DLL (telegram_setup.2.1.6.exe)|
+|9c0aa1e136f02e99b80e27e48dc5c4bb95a0b7f115d2f68aa4e9b1bef593d3db|embedded gh0st RAT DLL (telegram_setup.2.1.10.exe)|
+|19d1ff6bb589fab200f3bced0f148bb5e20fe9b37bd03de9cd425116cc0dba17|telegramCN_631.apk|
 
 
 
