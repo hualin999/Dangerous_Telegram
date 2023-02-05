@@ -15,7 +15,7 @@ This has led to the uncontrolled (without legal constraints) spread of various *
 
 # Project Objective
 
-**The purpose of this project is to analyze some Malware and Trojan samples that are currently spreading widely in the Telegram Chinese community, and to translate the relevant threat intelligence information into a specific analysis model for MISP (for example, [MISP objects](https://www.misp-project.org/objects.html)).**
+**The purpose of this project is to analyze some Malware and Trojan samples that are currently spreading widely in the Telegram Chinese community, and to translate the relevant threat intelligence information into a specific analysis model for MISP ([MISP objects](https://www.misp-project.org/objects.html)).**
 
 # Sample Analysis Procedure
 
